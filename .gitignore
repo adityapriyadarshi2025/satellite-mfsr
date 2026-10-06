@@ -1,0 +1,17 @@
+# data, environments and outputs
+data/
+baselines/
+results*/
+slurm_logs/
+logs/
+.venv/
+.cache/
+__pycache__/
+*.pyc
+*.npy
+*.zip
+*.tgz
+.DS_Store
+
+# site-specific SLURM settings
+slurm/site.sh

@@ -1,0 +1,13 @@
+# torch / torchvision come first, from the cu124 index (see slurm/setup.sh):
+#   pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+torchmetrics>=1.0,<2
+numpy
+scipy
+opencv-python-headless
+scikit-image
+pandas
+matplotlib
+tqdm
+einops
+tifffile
+lpips
