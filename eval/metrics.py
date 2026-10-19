@@ -10,7 +10,9 @@
 Colour matching is a numpy port of DBSR's match_colors (Gaussian sd 1.5, 7x7,
 reflect pad, 5 px inner crop, 3x3 least squares). direction="dbsr" solves
 pred @ C = gt, as in DBSR. direction="superf_compat" solves gt @ C = pred, as in
-the colour-matching step of SuperF's handheld/evals.py.
+the colour-matching step of SuperF's handheld/evals.py. direction="dbsr_affine"
+adds an offset ([pred, 1] @ C = gt, C 4x3), for real data where the HR comes from
+another sensor (WorldStrat: SPOT vs Sentinel-2).
 """
 
 from __future__ import annotations
@@ -53,6 +55,10 @@ def match_colors(gt: np.ndarray, pred: np.ndarray, direction: str = "dbsr") -> n
         C, *_ = np.linalg.lstsq(q, r, rcond=None)
     elif direction == "superf_compat":
         C, *_ = np.linalg.lstsq(r, q, rcond=None)
+    elif direction == "dbsr_affine":
+        C, *_ = np.linalg.lstsq(np.c_[q, np.ones(len(q))], r, rcond=None)
+        p = pred.reshape(-1, 3).astype(np.float64)
+        return (np.c_[p, np.ones(len(p))] @ C).reshape(pred.shape).astype(np.float32)
     else:
         raise ValueError(direction)
     return (pred.reshape(-1, 3).astype(np.float64) @ C).reshape(pred.shape).astype(np.float32)

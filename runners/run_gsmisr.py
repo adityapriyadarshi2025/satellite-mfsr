@@ -53,13 +53,21 @@ def main():
     cfg = Config(**{f.name: getattr(a, f.name) for f in fields(Config)})
     if a.oracle_shifts:
         cfg.init_shifts, cfg.learn_shifts, cfg.align_warmup = "given", False, 0
+    on_gpu = str(a.device).startswith("cuda")
+    if on_gpu:   # create the CUDA context now, so it is not counted in the first burst's time
+        torch.zeros(1, device=a.device)
+        torch.cuda.synchronize()
     for ref in select(a):
         if a.skip_existing and (pred_dir(a.results, a.tag, ref) / "pred.npy").exists():
             continue
         frames, hr, log = load_burst(ref, a.num_frames)
+        if on_gpu:
+            torch.cuda.reset_peak_memory_stats()
         t0 = time.time()
         res = fit(frames, ref.df, cfg, out_scale=a.out_scale, device=a.device,
                   given_d=true_shifts_lr(log) if a.oracle_shifts else None)
+        if on_gpu:
+            torch.cuda.synchronize()
         total = time.time() - t0
         pred = res.hr
         if a.out_scale is None:
@@ -72,7 +80,9 @@ def main():
                 "final_rot_rad": res.final_rot_rad, "noise_std_lr": res.noise_std,
                 "true_shifts_lr_px": None if true is None else true.tolist(),
                 "shift_convention": "final_shifts_lr_px = -b_t, same sign as the generator's dx/dy_pixels_lr",
-                "out_scale": a.out_scale or ref.df, "oracle_shifts": a.oracle_shifts}
+                "out_scale": a.out_scale or ref.df, "oracle_shifts": a.oracle_shifts,
+                "gpu_peak_mb": torch.cuda.max_memory_allocated() / 2 ** 20 if on_gpu else None,
+                "gpu_name": torch.cuda.get_device_name() if on_gpu else None}
         out = save_prediction(a.results, a.tag, ref, pred, meta)
         print(f"{a.tag:12s} {ref.scene} x{ref.df}  {total:.0f}s ({res.ms_per_iter:.0f} ms/iter)  -> {out}", flush=True)
 

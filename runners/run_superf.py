@@ -63,6 +63,9 @@ def build_args():
     p.add_argument("--exact_area", action="store_true",
                    help="fairness check at non-integer scales: replace SuperF's 'area' downsampling (exact only at "
                         "integer factors) by the exact pixel average (common/exact_area.py); no effect at integer factors")
+    p.add_argument("--global_std", action="store_true",
+                   help="real WorldStrat bursts: standardise every frame with one per-channel mean/std over the whole "
+                        "burst, as SuperF's own WorldStrat loader (WorldStratTestDataset) does, instead of per frame")
     return p.parse_args()
 
 
@@ -76,6 +79,18 @@ def seed_all(seed):
     torch.backends.cudnn.benchmark = False
 
 
+def _global_standardize(data):
+    """SuperF's WorldStratTestDataset: one per-channel mean/std over all frames and pixels instead of SRData's
+    per-frame statistics. Frames are HxWxC; mean/std keep SRData's (1, 1, C) shape."""
+    import torch
+    raw = {k: v["image"] * v["std"] + v["mean"] for k, v in data.images.items()}
+    allpix = torch.cat([r.reshape(-1, r.shape[-1]) for r in raw.values()])
+    mean = allpix.mean(0).reshape(1, 1, -1)
+    std = allpix.std(0).clamp(min=1e-8).reshape(1, 1, -1)
+    for k, r in raw.items():
+        data.images[k] = {"image": (r - mean) / std, "mean": mean, "std": std}
+
+
 def run_one(ref, args, device, mods):
     import torch
     from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -86,8 +101,12 @@ def run_one(ref, args, device, mods):
     n = args.num_frames
 
     seed_all(args.seed)
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats()
     data = SRData(data_dir=ref.path, num_samples=n, keep_in_memory=True,
                   scale_factor=float(ref.df) if supersample else 1.0, device=str(device))
+    if args.global_std:
+        _global_standardize(data)
     proj = get_input_projection("fourier", 2, args.proj_dim, device, args.fourier_scale)
     out_dim = 3 + 3 * n if use_gnll else 3
     dec = get_decoder("mlp", args.depth, args.proj_dim, args.hidden, output_dim=out_dim)
@@ -130,10 +149,13 @@ def run_one(ref, args, device, mods):
         "runtime_s": train_s, "iters": args.iters, "variant": args.variant, "seed": args.seed,
         "fourier_scale": args.fourier_scale, "color_shift": not args.no_color_shift,
         "device": str(device), "final_losses": last, "exact_area": bool(getattr(args, "exact_area", False)),
+        "global_std": bool(getattr(args, "global_std", False)),
         "learned_shift_params": shifts,
         "learned_shift_units": "SuperF coordinate units (image spans [0,1))",
         "true_shifts_lr_px": _first_n(true_shifts_lr(json.loads((Path(ref.path) / "transform_log.json").read_text())), n),
         "superf_commit": _git_head(args.superf_dir),
+        "gpu_peak_mb": torch.cuda.max_memory_allocated() / 2 ** 20 if device.type == "cuda" else None,
+        "gpu_name": torch.cuda.get_device_name(device) if device.type == "cuda" else None,
     }
     return pred, meta
 

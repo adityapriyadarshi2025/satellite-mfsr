@@ -36,10 +36,10 @@ PAPER = {  # SuperF (ICLR 2026) Table 1, SatSynthBurst PSNR
     "superf_mse": {2: 36.73, 4: 32.94, 8: 28.87},
     "superf_gnll": {2: 37.26, 4: 34.03, 8: 29.28},
 }
-ORDER = ["bilinear", "bicubic", "lafenetre", "nir", "nir5k", "s2superres", "s2superres_asis",
+ORDER = ["bilinear", "bicubic", "gsasr_edsr", "gsasr_rdn", "lafenetre", "nir", "nir5k", "s2superres", "s2superres_asis",
          "superf_mse", "superf_mse_exact", "superf_gnll", "superf_gnll_gpu", "superf_gnll_tv", "gsmisr", "gsmisr_tv"]
 # ablation rungs and frames-sweep runs get their own sections, not rows in the main tables
-SECTION_ONLY = re.compile(r"^(gsmisr(_tv)?_(a\d+|n\d+)|superf_mse_n\d+|superf_gnll_tvp.*|gsmisr_tv_w.*)$")
+SECTION_ONLY = re.compile(r"^(gsmisr(_tv)?_(a\d+|n\d+)|superf_mse_n\d+|superf_gnll_tvp.*|gsmisr_tv_w.*|.*_h200)$")
 LADDER = [  # jobs/ablation.sh: x4 light, 600 iterations; each step adds one ingredient
     ("gsmisr_a1", "s2-superres-like: fixed round Gaussians, phase-correlation shifts, no colour/noise model"),
     ("gsmisr_a2", "+ exhaustive shift search and warm-up"),

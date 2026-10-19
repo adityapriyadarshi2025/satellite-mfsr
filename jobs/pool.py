@@ -29,6 +29,8 @@ def main():
     ap.add_argument("--aug", default=None)
     ap.add_argument("--shift", default="1.0")
     ap.add_argument("--logdir", required=True)
+    ap.add_argument("--stride", type=int, default=1, help="only every k-th burst in sorted order (a spread-out subset)")
+    ap.add_argument("--max_bursts", type=int, default=0, help="stop after the first N bursts (0 = all)")
     ap.add_argument("cmd", nargs=argparse.REMAINDER)
     a = ap.parse_args()
     cmd = a.cmd[1:] if a.cmd and a.cmd[0] == "--" else a.cmd
@@ -38,6 +40,9 @@ def main():
     refs = [r for df in a.df for r in discover(a.data_root, df=df, shift=a.shift, aug=a.aug)]
     if not refs:
         sys.exit(f"no bursts for df={a.df} aug={a.aug} shift={a.shift} under {a.data_root}")
+    refs = refs[::max(1, a.stride)]
+    if a.max_bursts > 0:
+        refs = refs[:a.max_bursts]
     logdir = Path(a.logdir)
     logdir.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, OMP_NUM_THREADS=str(a.threads), MKL_NUM_THREADS=str(a.threads))

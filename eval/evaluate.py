@@ -42,7 +42,8 @@ def main():
     ap.add_argument("--methods", nargs="*", default=None)
     ap.add_argument("--protocol", choices=["code", "paper", "both"], default="paper")
     ap.add_argument("--lpips", action="store_true", help="also compute LPIPS (needs torch + lpips weights)")
-    ap.add_argument("--colormatch", choices=["dbsr", "superf_compat"], default="dbsr")
+    ap.add_argument("--colormatch", choices=["dbsr", "superf_compat", "dbsr_affine"], default="dbsr",
+                    help="dbsr_affine (3x3 + offset) for real data, e.g. WorldStrat")
     ap.add_argument("--border", type=int, default=16)
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--out", default=None, help="csv path (default results/scores.csv)")

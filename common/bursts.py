@@ -93,7 +93,10 @@ def load_burst(ref: BurstRef | str, num_frames: int = 16):
 
 
 def true_shifts_lr(log: dict):
-    """[T,2] true (dx, dy) of each frame in LR pixels as recorded by the generator, or None if absent."""
+    """[T,2] true (dx, dy) of each frame in LR pixels as recorded by the generator, or None if absent.
+    Real bursts (setup/worldstrat_convert.py) carry 0.0 placeholders for SuperF's loader and "shifts_known": false."""
+    if any(isinstance(v, dict) and v.get("shifts_known") is False for v in log.values()):
+        return None
     try:
         return np.array([[v["dx_pixels_lr"], v["dy_pixels_lr"]] for v in log.values()], dtype=np.float64)
     except (KeyError, TypeError):

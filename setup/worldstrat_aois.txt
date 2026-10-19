@@ -1,0 +1,75 @@
+# WorldStrat AOIs to extract (setup/get_worldstrat.py). One name per line; '#' starts a comment.
+# 1) SuperF's real-data split (baselines/superf/worldstrat_datasets.txt): "sweet" = clean, "bitter" = clouds/change
+# sweet
+UNHCR-TURs005204
+UNHCR-TURs004202
+UNHCR-TCDs080156
+UNHCR-SYRs008164
+UNHCR-SOMs027976
+UNHCR-MMRs035165
+UNHCR-GRCs000069
+Landcover-777318
+Amnesty POI-20-3-3
+Amnesty POI-19-2-2
+Amnesty POI-14-1-1
+Amnesty POI-9-3-2
+UNHCR-BFAs004567
+UNHCR-BFAs004486
+UNHCR-MLIs003334
+UNHCR-CMRs004042
+UNHCR-DJIs000145
+UNHCR-NERs009532
+UNHCR-ROUs002531
+UNHCR-IRQs035254
+UNHCR-IRQs035120
+UNHCR-IRQs035003
+Amnesty POI-13-1-1
+Landcover-1355398
+UNHCR-LTUs001108
+# bitter
+UNHCR-MMRs035156
+ASMSpotter-20-3-1
+Amnesty POI-18-1-3
+Amnesty POI-17-2-3
+Amnesty POI-7-2-2
+Amnesty POI-1-2-1
+UNHCR-GNBs001116
+UNHCR-NGAs035291
+UNHCR-AZEs003152
+UNHCR-AZEs002227
+Amnesty POI-11-2-1
+Landcover-777239
+Landcover-777624
+Landcover-778551
+Landcover-769024
+Landcover-1316418
+Landcover-1530223
+UNHCR-NGAs036108
+UNHCR-NGAs036519
+UNHCR-MMRs035212
+UNHCR-MMRs032322
+UNHCR-LBNs006251
+UNHCR-LBNs004412
+Amnesty POI-7-1-2
+Amnesty POI-17-2-1
+# 2) the 20 scenes of SatSynthBurst (SuperF's synthetic benchmark, our main table): the same places with real frames
+ASMSpotter-28-1-2
+ASMSpotter-29-3-1
+Amnesty POI-11-1-1
+Amnesty POI-17-3-1
+Amnesty POI-4-1-1
+Amnesty POI-5-2-1
+Amnesty POI-7-1-3
+Landcover-1055780
+Landcover-1295513
+Landcover-1339590
+Landcover-242541
+Landcover-743192
+Landcover-770726
+Landcover-772328
+Landcover-775262
+Landcover-776340
+Landcover-823696
+UNHCR-NERs009690
+UNHCR-SYRs008164
+UNHCR-YEMs035290

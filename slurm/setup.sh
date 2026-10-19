@@ -15,7 +15,7 @@ echo "setup: PROJ=$PROJ  host=$(hostname)  steps: $STEPS"
 
 # if the HTTP proxy fails, retry without the proxy variables (compute nodes often have direct internet)
 noproxy() { env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u all_proxy -u ALL_PROXY "$@"; }
-needs_net=0; for s in env repos data; do has "$s" && needs_net=1; done
+needs_net=0; for s in env repos data gsasr; do has "$s" && needs_net=1; done
 if [ "$needs_net" = 1 ] && ! curl -s -m 20 -o /dev/null https://github.com && ! noproxy curl -s -m 20 -o /dev/null https://github.com; then
     echo "!! no internet on $(hostname). This must run on a compute node, not the login node." >&2
     exit 1
@@ -51,6 +51,24 @@ if has repos; then
     }
     clone superf                https://github.com/Sjyhne/superf.git                 dff884c
     clone s2-superres           https://github.com/calebrob6/s2-superres.git         6543e25
+    clone gsasr                 https://github.com/ChrisDud0257/GSASR.git            9d2eb64
+fi
+
+if has gsasr; then
+    echo "== gsasr: the paper's weights (EDSR, RDN; trained on DIV2K) from Hugging Face -> $BASELINES/gsasr_weights"
+    for m in EDSR RDN; do
+        d="$BASELINES/gsasr_weights/$m"; mkdir -p "$d"
+        for f in encoder decoder; do
+            [ -s "$d/$f.pth" ] && continue
+            u="https://huggingface.co/mutou0308/GSASR/resolve/main/GSASR_paper/$m/$f.pth"
+            if curl -sSfL --retry 3 -o "$d/$f.pth.part" "$u" || noproxy curl -sSfL --retry 3 -o "$d/$f.pth.part" "$u"; then
+                mv "$d/$f.pth.part" "$d/$f.pth"
+            else
+                echo "!! download failed: $m/$f.pth"
+            fi
+        done
+        ls -l "$d"
+    done
 fi
 
 if has data; then
